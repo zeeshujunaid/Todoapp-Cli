@@ -1,13 +1,25 @@
-import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, FlatList} from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
-import {deleteTodo} from '../redux/slicetodo';
+import React, { useContext } from 'react'; // 🔥
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Switch, // 🔥
+} from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { deleteTodo } from '../redux/slicetodo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import getPriorityStyles from '../../helper/prioritystyle';
+import { ThemeContext } from '../../Theme/themecontext';
+import Header from '../../components/Header'; 
+import TodoCard from '../../components/Todocard';
 
-export default function Home({navigation}) {
+export default function Home({ navigation }) {
   const todos = useSelector(state => state.todos);
   const dispatch = useDispatch();
+
+  const { theme, toggleTheme } = useContext(ThemeContext); // 🔥
+  const isDark = theme === 'dark'; // 🔥
 
   const handleDelete = async id => {
     try {
@@ -21,70 +33,33 @@ export default function Home({navigation}) {
     }
   };
 
-  const renderItem = ({item}) => {
-    const {backgroundColor, textColor} = getPriorityStyles(item.priority);
-
-    return (
-      <View style={[styles.todoCard, {backgroundColor}]}>
-        <View style={styles.todoTextContainer}>
-          <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 5,backgroundColor:"white",borderRadius:5,width:112}}>
-            <Text style={[styles.todoId, {color: textColor}]}>
-              #{item.priority}
-            </Text>
-            <Text style={[styles.todoId, {color: textColor}]}>
-              {'  '}
-              {new Date(item.dueDate).toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </Text>
-          </View>
-          <Text style={[styles.todoTitle, {color: textColor}]}>
-            {item.text}
-          </Text>
-          {item.description ? (
-            <Text style={[styles.todoDescription, {color: textColor}]}>
-              {item.description}
-            </Text>
-          ) : null}
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => handleDelete(item.id)}
-            style={styles.actionButton}>
-            <Text style={styles.actionText}>🗑️</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Addtodo', {id: item.id})}
-            style={styles.actionButton}>
-            <Text style={styles.actionText}>📝</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
+  const renderItem = ({ item }) => (
+    <TodoCard
+      item={item}
+      onDelete={handleDelete}
+      onEdit={(id) => navigation.navigate('Addtodo', { id })}
+    />
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerText}>Todo List</Text>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#fff' }]}>
+
+      <Header isDark={isDark} toggleTheme={toggleTheme} />
 
       <FlatList
         data={todos}
         keyExtractor={item => item.id}
         renderItem={renderItem}
-        ListEmptyComponent={<Text style={styles.emptyText}>No todos yet</Text>}
+        ListEmptyComponent={<Text style={[styles.emptyText, { color: isDark ? '#fff' : '#333' }]}>No todos yet</Text>}
         contentContainerStyle={
           todos.length === 0 ? styles.emptyContainer : styles.listContainer
         }
       />
 
       <TouchableOpacity
-        style={styles.floatingButton}
+        style={[styles.floatingButton, { backgroundColor: isDark ? '#fff' : '#fff' }]}
         onPress={() => navigation.navigate('Addtodo')}>
-        <Text style={styles.buttonText}>➕</Text>
+        <Text style={[styles.buttonText, { color: isDark ? '#fff' : '#000' }]}>➕</Text>
       </TouchableOpacity>
     </View>
   );
@@ -93,15 +68,8 @@ export default function Home({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: '#f7d980',
     paddingTop: 40,
     paddingHorizontal: 20,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
   },
   listContainer: {
     paddingBottom: 100,
@@ -113,51 +81,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#333',
-    marginTop: 20,
-  },
-  todoCard: {
-    padding: 15,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 10,
-  },
-  todoTextContainer: {
-    flex: 1,
-  },
-  todoId: {
-    fontSize: 12,
-    marginBottom: 5,
-    marginRight: 5,
-  },
-  todoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  todoDescription: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  buttonContainer: {
-    marginLeft: 10,
-    flexDirection: 'row',
-  },
-  actionButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    marginBottom: 5,
-  },
-  actionText: {
-    fontSize: 16,
   },
   floatingButton: {
     position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#fff',
     borderRadius: 30,
     paddingVertical: 12,
     paddingHorizontal: 20,

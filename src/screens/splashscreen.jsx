@@ -12,7 +12,7 @@ export default function SplashScreen({ navigation }) {
     const loadTodos = async () => {
         // geting todos from async storage
       try {
-        const jsonValue = await AsyncStorage.getItem('@todos');
+        const jsonValue = await AsyncStorage.getItem('todos');
         if (jsonValue != null) {
           const todosFromStorage = JSON.parse(jsonValue);
             // Dispatch the setTodos action to update the Redux store

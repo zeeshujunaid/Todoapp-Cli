@@ -8,11 +8,13 @@ const Todoslice = createSlice({
       state.push(action.payload);
     },
     updateTodo: (state, action) => {
-      const { id, title, description } = action.payload;
+      const { id, title, description, priority, dueDate } = action.payload;
       const todo = state.find((todo) => todo.id === id);
       if (todo) {
         todo.text = title;
         todo.description = description || '';
+        todo.priority = priority || 'Medium';
+        todo.dueDate = dueDate || new Date().toISOString();
       }
     },
     deleteTodo: (state, action) => {
