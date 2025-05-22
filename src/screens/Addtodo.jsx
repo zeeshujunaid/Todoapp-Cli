@@ -1,16 +1,23 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, Button, TextInput, StyleSheet} from 'react-native';
-import {useDispatch, useSelector} from 'react-redux';
-import {addTodo, updateTodo} from '../redux/slicetodo';
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  View,
+  Text,
+  Button,
+  TextInput,
+  StyleSheet,
+} from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { addTodo, updateTodo } from '../redux/slicetodo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import uuid from 'react-native-uuid';
-import {Picker} from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import getPriorityStyles from '../../helper/prioritystyle'; 
+import Header from '../../components/Header';
+import { ThemeContext } from '../../Theme/themecontext';
+import PriorityPicker from '../../components/Priority';
+import DatePicker from '../../components/Datepicker';
 
-export default function Addtodo({route, navigation}) {
+export default function Addtodo({ route, navigation }) {
   const dispatch = useDispatch();
-  const {id} = route.params || {};
+  const { id } = route.params || {};
   const todos = useSelector(state => state.todos);
 
   const existingTodo = todos.find(todo => todo.id === id);
@@ -19,14 +26,18 @@ export default function Addtodo({route, navigation}) {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('Medium');
   const [dueDate, setDueDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (existingTodo) {
       setTitle(existingTodo.text);
       setDescription(existingTodo.description || '');
       setPriority(existingTodo.priority || 'Medium');
-      setDueDate(existingTodo.dueDate ? new Date(existingTodo.dueDate) : new Date());
+      setDueDate(
+        existingTodo.dueDate ? new Date(existingTodo.dueDate) : new Date()
+      );
     }
   }, [existingTodo]);
 
@@ -45,11 +56,11 @@ export default function Addtodo({route, navigation}) {
     }
 
     if (existingTodo) {
-      dispatch(updateTodo({id, title, description, priority, dueDate}));
+      dispatch(updateTodo({ id, title, description, priority, dueDate }));
       const updatedTodos = todos.map(todo =>
         todo.id === id
-          ? {...todo, text: title, description, priority, dueDate}
-          : todo,
+          ? { ...todo, text: title, description, priority, dueDate }
+          : todo
       );
       await saveTodosToStorage(updatedTodos);
     } else {
@@ -72,58 +83,39 @@ export default function Addtodo({route, navigation}) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#fff' }]}>
+      <Header isDark={isDark} toggleTheme={toggleTheme} />
+
+      <Text style={[styles.heading, { color: isDark ? '#fff' : '#000' }]}>
         {existingTodo ? 'Edit Todo' : 'Add Todo'}
       </Text>
 
       <TextInput
         placeholder="Enter Todo"
-        style={[styles.input, {backgroundColor: '#fff'}]}
+        placeholderTextColor={isDark ? '#ccc' : '#888'}
+        style={[styles.input, { backgroundColor: isDark ? '#333' : '#fff', color: isDark ? '#fff' : '#000' }]}
         value={title}
         onChangeText={setTitle}
       />
 
       <TextInput
         placeholder="Enter Description (optional)"
-        style={[styles.input, {backgroundColor: '#fff'}]}
+        placeholderTextColor={isDark ? '#ccc' : '#888'}
+        style={[styles.input, { backgroundColor: isDark ? '#333' : '#fff', color: isDark ? '#fff' : '#000' }]}
         value={description}
         onChangeText={setDescription}
       />
 
-      <Text style={styles.label}>Priority:</Text>
-      <View style={[styles.dropdown, {backgroundColor: getPriorityStyles()}]}>
-        <Picker
-          selectedValue={priority}
-          onValueChange={itemValue => setPriority(itemValue)}
-          style={styles.picker}>
-          <Picker.Item label="Low" value="Low" />
-          <Picker.Item label="Medium" value="Medium" />
-          <Picker.Item label="High" value="High" />
-        </Picker>
-      </View>
+      <Text style={[styles.label, { color: isDark ? '#fff' : '#000' }]}>Priority:</Text>
+      <PriorityPicker priority={priority} setPriority={setPriority} />
 
-      <Text style={styles.label}>Due Date:</Text>
-      <Button
-        title={dueDate.toDateString()}
-        onPress={() => setShowDatePicker(true)}
-      />
-
-      {showDatePicker && (
-        <DateTimePicker
-          value={dueDate}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) setDueDate(selectedDate);
-          }}
-        />
-      )}
+      <Text style={[styles.label, { color: isDark ? '#fff' : '#000' }]}>Due Date:</Text>
+      <DatePicker dueDate={dueDate} setDueDate={setDueDate} />
 
       <Button
         title={existingTodo ? 'Update Todo' : 'Add Todo'}
         onPress={handleSubmit}
+        color={isDark ? '#bbb' : undefined}
       />
     </View>
   );
@@ -133,8 +125,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 40,
+    gap: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#f9f9f9',
   },
   heading: {
     fontSize: 26,
@@ -154,15 +146,5 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  dropdown: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
   },
 });
