@@ -34,12 +34,14 @@ export default function Addtodo({ route, navigation }) {
     if (existingTodo) {
       setTitle(existingTodo.text);
       setDescription(existingTodo.description || '');
-      setPriority(existingTodo.priority || 'Medium');
+      setPriority(existingTodo.priority ? capitalize(existingTodo.priority) : 'Medium');
       setDueDate(
         existingTodo.dueDate ? new Date(existingTodo.dueDate) : new Date()
       );
     }
   }, [existingTodo]);
+
+  const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
 
   const saveTodosToStorage = async todos => {
     try {
@@ -55,11 +57,13 @@ export default function Addtodo({ route, navigation }) {
       return;
     }
 
+    const normalizedPriority = priority.toLowerCase();
+
     if (existingTodo) {
-      dispatch(updateTodo({ id, title, description, priority, dueDate }));
+      dispatch(updateTodo({ id, title, description, priority: normalizedPriority, dueDate }));
       const updatedTodos = todos.map(todo =>
         todo.id === id
-          ? { ...todo, text: title, description, priority, dueDate }
+          ? { ...todo, text: title, description, priority: normalizedPriority, dueDate }
           : todo
       );
       await saveTodosToStorage(updatedTodos);
@@ -69,7 +73,7 @@ export default function Addtodo({ route, navigation }) {
         text: title,
         description,
         completed: false,
-        priority,
+        priority: normalizedPriority,
         dueDate: dueDate.toISOString(),
       };
       dispatch(addTodo(newTodo));

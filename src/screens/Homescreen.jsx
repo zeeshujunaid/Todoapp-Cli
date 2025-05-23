@@ -12,7 +12,12 @@ export default function Home({navigation}) {
 
   // Filter out archived todos
   const todos = useSelector(state =>
-    state.todos.filter(todo => !todo.archived),
+    state.todos
+      .filter(todo => !todo.archived)
+      .sort((a, b) => {
+        const priorityOrder = { high: 1, medium: 2, low: 3 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      })
   );
 
   const {theme, toggleTheme} = useContext(ThemeContext);
