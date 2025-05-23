@@ -6,14 +6,17 @@ export default function TodoCard({ item, onDelete, onEdit, onComplete }) {
   const { backgroundColor, textColor } = getPriorityStyles(item.priority);
 
   return (
-    <View style={[styles.todoCard, { backgroundColor }]}>
-      <View style={styles.todoTextContainer}>
-        <View style={styles.metaInfo}>
-          <Text style={[styles.todoId, { color: textColor }]}>
-            Priority:{item.priority}
+    <View style={[styles.card, { backgroundColor }]}>
+      {/* Title + Top Right Info */}
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: textColor }]}>
+          {item.text}
+        </Text>
+        <View style={styles.rightInfo}>
+          <Text style={[styles.priorityBadge, { borderColor: textColor, color: textColor }]}>
+            {item.priority.toUpperCase()}
           </Text>
-          <Text style={[styles.todoId, { color: textColor }]}>
-            {'  '}
+          <Text style={[styles.date, { color: textColor }]}>
             {new Date(item.dueDate).toLocaleDateString('en-GB', {
               day: '2-digit',
               month: 'short',
@@ -21,47 +24,33 @@ export default function TodoCard({ item, onDelete, onEdit, onComplete }) {
             })}
           </Text>
         </View>
-
-        {/* Todo Text with line-through if completed */}
-        <Text
-          style={[
-            styles.todoTitle,
-            { color: textColor },
-            item.completed && styles.completedText,
-          ]}
-        >
-          {item.text}
-        </Text>
-
-        {item.description ? (
-          <Text style={[styles.todoDescription, { color: textColor }]}>
-            {item.description}
-          </Text>
-        ) : null}
-
-        {/* Show Completed At date if completed */}
-        {item.completed && item.completedAt ? (
-          <Text style={[styles.completedAtText, { color: textColor }]}>
-            Completed At: {new Date(item.completedAt).toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </Text>
-        ) : null}
       </View>
 
-      {/* Only show buttons if NOT completed */}
+      {/* Description */}
+      {item.description ? (
+        <Text style={[styles.description, { color: textColor }]}>
+          {item.description}
+        </Text>
+      ) : null}
+
+      {/* Completed At */}
+      {item.completed && item.completedAt && (
+        <Text style={[styles.completedAt, { color: textColor }]}>
+          ✅ Completed: {new Date(item.completedAt).toLocaleDateString('en-GB')}
+        </Text>
+      )}
+
+      {/* Action Buttons */}
       {!item.completed && (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity onPress={() => onDelete(item.id)} style={styles.actionButton}>
-            <Text style={styles.actionText}>🗑️</Text>
+        <View style={styles.buttons}>
+          <TouchableOpacity onPress={() => onEdit(item.id)} style={styles.iconBtn}>
+            <Text style={styles.iconText}>📝</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => onEdit(item.id)} style={styles.actionButton}>
-            <Text style={styles.actionText}>📝</Text>
+          <TouchableOpacity onPress={() => onComplete(item.id)} style={styles.iconBtn}>
+            <Text style={styles.iconText}>✔️</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => onComplete(item.id)} style={styles.actionButton}>
-            <Text style={styles.actionText}>✔️</Text>
+          <TouchableOpacity onPress={() => onDelete(item.id)} style={styles.iconBtn}>
+            <Text style={styles.iconText}>🗑️</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -70,57 +59,57 @@ export default function TodoCard({ item, onDelete, onEdit, onComplete }) {
 }
 
 const styles = StyleSheet.create({
-  todoCard: {
-    padding: 15,
-    marginBottom: 12,
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 14,
+    elevation: 3,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 10,
   },
-  metaInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-    backgroundColor: 'white',
-    borderRadius: 5,
-  },
-  todoTextContainer: {
-    flex: 1,
-  },
-  todoId: {
-    fontSize: 12,
-    marginBottom: 5,
-    marginRight: 5,
-  },
-  todoTitle: {
+  title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
+    flex: 1,
+    marginRight: 10,
   },
-  completedText: {
-    textDecorationLine: 'line-through',
-    opacity: 0.6,
+  rightInfo: {
+    alignItems: 'flex-end',
   },
-  todoDescription: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  completedAtText: {
+  priorityBadge: {
     fontSize: 12,
-    marginTop: 6,
-    fontStyle: 'italic',
-  },
-  buttonContainer: {
-    marginLeft: 10,
-    flexDirection: 'row',
-  },
-  actionButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    fontWeight: 'bold',
+    borderWidth: 1,
     borderRadius: 6,
-    marginBottom: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginBottom: 4,
   },
-  actionText: {
-    fontSize: 16,
+  date: {
+    fontSize: 12,
+  },
+  description: {
+    fontSize: 14,
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  completedAt: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 6,
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+  },
+  iconBtn: {
+    marginLeft: 12,
+  },
+  iconText: {
+    fontSize: 18,
   },
 });
